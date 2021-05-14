@@ -1,0 +1,20 @@
+// check Bluetooth MAC addr
+hciconfig
+
+// Enable Bluetooth mode
+bluetoothctl
+// other devices can find pi
+discoverable yes
+(discoverable on)
+
+// check client's MAC addr
+scan on
+
+// stop scanning if found
+scan off
+
+// pairing
+agent on
+default-agent
+pair [device MAC addr]
+
