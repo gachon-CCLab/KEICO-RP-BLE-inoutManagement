@@ -70,6 +70,7 @@ def setup_motor():
     return motor
  
  
+ 
 def register_ad_cb():
     """
     Callback if registering advertisement was successful
