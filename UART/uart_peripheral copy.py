@@ -12,18 +12,18 @@ LE_ADVERTISING_MANAGER_IFACE = 'org.bluez.LEAdvertisingManager1'
 GATT_MANAGER_IFACE =           'org.bluez.GattManager1'
 GATT_CHRC_IFACE =              'org.bluez.GattCharacteristic1'
 UART_SERVICE_UUID =            '6e400001-b5a3-f393-e0a9-e50e24dcca9e'
-UART_CHARACTERISTIC_UUID =  '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
-# UART_TX_CHARACTERISTIC_UUID =  '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
+UART_RX_CHARACTERISTIC_UUID =  '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
+UART_TX_CHARACTERISTIC_UUID =  '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
 # UART_SERVICE_UUID =            '2b36ec00-00ad-4ffc-bd74-57890eef9bb2'
 # UART_RX_CHARACTERISTIC_UUID =  '2b36ec01-00ad-4ffc-bd74-57890eef9bb2'
 # UART_TX_CHARACTERISTIC_UUID =  '2b36ec02-00ad-4ffc-bd74-57890eef9bb2'
 LOCAL_NAME =                   'rpi-gatt-server'
 mainloop = None
 
-class RTxCharacteristic(Characteristic):
+class TxCharacteristic(Characteristic):
     def __init__(self, bus, index, service):
-        Characteristic.__init__(self, bus, index, UART_CHARACTERISTIC_UUID,
-                                ['notify','write','read'], service)
+        Characteristic.__init__(self, bus, index, UART_TX_CHARACTERISTIC_UUID,
+                                ['notify'], service)
         self.notifying = False
         GLib.io_add_watch(sys.stdin, GLib.IO_IN, self.on_console_input)
 
@@ -52,16 +52,20 @@ class RTxCharacteristic(Characteristic):
         if not self.notifying:
             return
         self.notifying = False
+
+class RxCharacteristic(Characteristic):
+    def __init__(self, bus, index, service):
+        Characteristic.__init__(self, bus, index, UART_RX_CHARACTERISTIC_UUID,
+                                ['write'], service)
+
     def WriteValue(self, value, options):
         print('remote: {}'.format(bytearray(value).decode()))
-
-    
 
 class UartService(Service):
     def __init__(self, bus, index):
         Service.__init__(self, bus, index, UART_SERVICE_UUID, True)
-        # self.add_characteristic(TxCharacteristic(bus, 0, self))
-        self.add_characteristic(RTxCharacteristic(bus, 0, self))
+        self.add_characteristic(TxCharacteristic(bus, 0, self))
+        self.add_characteristic(RxCharacteristic(bus, 1, self))
 
 class Application(dbus.service.Object):
     def __init__(self, bus):
